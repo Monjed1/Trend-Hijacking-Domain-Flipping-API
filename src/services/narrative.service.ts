@@ -123,7 +123,8 @@ export class NarrativeService {
       { label: "narrative-scoring", maxTokens: 1200 }
     );
 
-    const scores = this.normalizeScores(response.scores ?? fallbackScores().scores);
+    const fallback = fallbackScores();
+    const scores = this.normalizeScores(response.scores ?? fallback.scores);
     return prisma.narrative.update({
       where: { id: narrative.id },
       data: {

@@ -64,7 +64,7 @@ export class DomainGeneratorService {
     return uniqueBy(
       generated
         .map((idea) => this.normalizeIdea(idea))
-        .filter((idea): idea is GeneratedDomainIdea => Boolean(idea) && validIdea(idea)),
+        .filter((idea): idea is GeneratedDomainIdea => idea !== null && validIdea(idea)),
       (idea) => idea.domain
     ).slice(0, maxDomains);
   }
