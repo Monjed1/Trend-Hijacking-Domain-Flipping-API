@@ -29,5 +29,5 @@ COPY --from=build /app/dist ./dist
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
-EXPOSE 3000
+EXPOSE 3030
 ENTRYPOINT ["./docker-entrypoint.sh"]

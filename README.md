@@ -22,13 +22,13 @@ docker compose up -d --build
 Health check:
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3030/health
 ```
 
 Run the full n8n-friendly pipeline:
 
 ```bash
-curl -X POST http://localhost:3000/api/pipeline/run \
+curl -X POST http://localhost:3030/api/pipeline/run \
   -H "content-type: application/json" \
   -d '{
     "sources": ["googletrends", "googleautocomplete", "namebio", "huggingface", "npm", "pypi", "appstore"],
@@ -225,7 +225,7 @@ Every response is valid JSON and includes `success` and `requestId`.
 
 1. Add an **HTTP Request** node:
    - Method: `POST`
-   - URL: `http://YOUR_VPS_IP:3000/api/pipeline/run`
+   - URL: `http://YOUR_VPS_IP:3030/api/pipeline/run`
    - Body type: JSON
    - Body:
 

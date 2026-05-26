@@ -21,7 +21,7 @@ const csv = (value: string | undefined, fallback: string[]) =>
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().positive().default(3000),
+  PORT: z.coerce.number().int().positive().default(3030),
   DATABASE_URL: z.preprocess(
     emptyToUndefined,
     z.string().url().default("postgresql://postgres:postgres@localhost:5432/trend_domains?schema=public")
