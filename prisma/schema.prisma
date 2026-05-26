@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RawTrend {
+  id          String   @id @default(uuid())
+  source      String
+  sourceId    String?
+  title       String
+  url         String?
+  author      String?
+  content     String?
+  category    String?
+  publishedAt DateTime?
+  metadata    Json?
+  collectedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([source])
+  @@index([category])
+  @@index([publishedAt])
+}
+
+model Narrative {
+  id                  String   @id @default(uuid())
+  title               String
+  category            String?
+  summary             String
+  commercialNarrative String
+  terms               Json?
+  buyerTypes          Json?
+  sourceTrendIds      Json?
+  sourceSignals       Json?
+  scores              Json?
+  overallScore        Int      @default(0)
+  status              String   @default("NEW")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  domains DomainCandidate[]
+
+  @@index([overallScore])
+  @@index([category])
+}
+
+model DomainCandidate {
+  id                         String   @id @default(uuid())
+  narrativeId                String?
+  domain                     String   @unique
+  root                       String
+  tld                        String
+  category                   String?
+  generationType             String?
+  decision                   String   @default("UNREVIEWED")
+  score                      Int      @default(0)
+  availableStatus            String   @default("unknown")
+  availabilityConfidence     String   @default("low")
+  trademarkRisk              String   @default("medium")
+  resalePotential            String   @default("unknown")
+  estimatedResaleRangeUsd    String?
+  maxRecommendedBuyPriceUsd  Int      @default(0)
+  reasoning                  String?
+  risks                      Json?
+  sourceSignals              Json?
+  metadata                   Json?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  narrative Narrative? @relation(fields: [narrativeId], references: [id], onDelete: SetNull)
+  checks    AvailabilityCheck[]
+
+  @@index([decision])
+  @@index([score])
+  @@index([availableStatus])
+  @@index([trademarkRisk])
+  @@index([narrativeId])
+}
+
+model AvailabilityCheck {
+  id                     String   @id @default(uuid())
+  domainId               String?
+  domain                 String
+  status                 String
+  confidence             String
+  method                 String
+  raw                    Json?
+  checkedAt              DateTime @default(now())
+
+  domainCandidate DomainCandidate? @relation(fields: [domainId], references: [id], onDelete: SetNull)
+
+  @@index([domain])
+  @@index([status])
+  @@index([checkedAt])
+}
+
+model PipelineRun {
+  id         String   @id @default(uuid())
+  requestId String?
+  status     String   @default("RUNNING")
+  input      Json?
+  summary    Json?
+  error      String?
+  startedAt  DateTime @default(now())
+  finishedAt DateTime?
+
+  @@index([status])
+  @@index([startedAt])
+}

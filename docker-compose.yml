@@ -1,0 +1,129 @@
+services:
+  api:
+    build: .
+    container_name: trend-domain-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      PORT: "3000"
+      DATABASE_URL: "${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/trend_domains?schema=public}"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      AI_PROVIDER: "${AI_PROVIDER:-openai}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_BASE_URL: "${OPENAI_BASE_URL:-https://api.openai.com/v1}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-deepseek-chat}"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://localhost:11434}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3.1}"
+      PRODUCT_HUNT_TOKEN: "${PRODUCT_HUNT_TOKEN:-}"
+      REDDIT_CLIENT_ID: "${REDDIT_CLIENT_ID:-}"
+      REDDIT_CLIENT_SECRET: "${REDDIT_CLIENT_SECRET:-}"
+      TWITTER_BEARER_TOKEN: "${TWITTER_BEARER_TOKEN:-}"
+      ENABLE_PRODUCT_HUNT: "${ENABLE_PRODUCT_HUNT:-true}"
+      ENABLE_TECHCRUNCH: "${ENABLE_TECHCRUNCH:-true}"
+      ENABLE_REDDIT: "${ENABLE_REDDIT:-true}"
+      ENABLE_HACKERNEWS: "${ENABLE_HACKERNEWS:-true}"
+      ENABLE_GITHUB_TRENDING: "${ENABLE_GITHUB_TRENDING:-true}"
+      ENABLE_TWITTER: "${ENABLE_TWITTER:-false}"
+      ENABLE_GOOGLE_TRENDS: "${ENABLE_GOOGLE_TRENDS:-true}"
+      ENABLE_GOOGLE_AUTOCOMPLETE: "${ENABLE_GOOGLE_AUTOCOMPLETE:-true}"
+      ENABLE_GOOGLE_SERP: "${ENABLE_GOOGLE_SERP:-false}"
+      ENABLE_NAMEBIO: "${ENABLE_NAMEBIO:-true}"
+      ENABLE_HUGGINGFACE: "${ENABLE_HUGGINGFACE:-true}"
+      ENABLE_NPM: "${ENABLE_NPM:-true}"
+      ENABLE_PYPI: "${ENABLE_PYPI:-true}"
+      ENABLE_APP_STORE: "${ENABLE_APP_STORE:-true}"
+      ENABLE_TIKTOK_CREATIVE_CENTER: "${ENABLE_TIKTOK_CREATIVE_CENTER:-true}"
+      ENABLE_SOCIAL_HANDLE_CHECK: "${ENABLE_SOCIAL_HANDLE_CHECK:-false}"
+      GOOGLE_TRENDS_GEO: "${GOOGLE_TRENDS_GEO:-US}"
+      APP_STORE_COUNTRY: "${APP_STORE_COUNTRY:-us}"
+      MAX_DOMAINS_PER_NARRATIVE: "${MAX_DOMAINS_PER_NARRATIVE:-25}"
+      MIN_BUY_SCORE: "${MIN_BUY_SCORE:-80}"
+      MIN_WATCH_SCORE: "${MIN_WATCH_SCORE:-65}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    container_name: trend-domain-worker
+    restart: unless-stopped
+    command: ["worker"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DATABASE_URL: "${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/trend_domains?schema=public}"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      AI_PROVIDER: "${AI_PROVIDER:-openai}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      OPENAI_BASE_URL: "${OPENAI_BASE_URL:-https://api.openai.com/v1}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-deepseek-chat}"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://localhost:11434}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-llama3.1}"
+      PRODUCT_HUNT_TOKEN: "${PRODUCT_HUNT_TOKEN:-}"
+      REDDIT_CLIENT_ID: "${REDDIT_CLIENT_ID:-}"
+      REDDIT_CLIENT_SECRET: "${REDDIT_CLIENT_SECRET:-}"
+      TWITTER_BEARER_TOKEN: "${TWITTER_BEARER_TOKEN:-}"
+      ENABLE_PRODUCT_HUNT: "${ENABLE_PRODUCT_HUNT:-true}"
+      ENABLE_TECHCRUNCH: "${ENABLE_TECHCRUNCH:-true}"
+      ENABLE_REDDIT: "${ENABLE_REDDIT:-true}"
+      ENABLE_HACKERNEWS: "${ENABLE_HACKERNEWS:-true}"
+      ENABLE_GITHUB_TRENDING: "${ENABLE_GITHUB_TRENDING:-true}"
+      ENABLE_TWITTER: "${ENABLE_TWITTER:-false}"
+      ENABLE_GOOGLE_TRENDS: "${ENABLE_GOOGLE_TRENDS:-true}"
+      ENABLE_GOOGLE_AUTOCOMPLETE: "${ENABLE_GOOGLE_AUTOCOMPLETE:-true}"
+      ENABLE_GOOGLE_SERP: "${ENABLE_GOOGLE_SERP:-false}"
+      ENABLE_NAMEBIO: "${ENABLE_NAMEBIO:-true}"
+      ENABLE_HUGGINGFACE: "${ENABLE_HUGGINGFACE:-true}"
+      ENABLE_NPM: "${ENABLE_NPM:-true}"
+      ENABLE_PYPI: "${ENABLE_PYPI:-true}"
+      ENABLE_APP_STORE: "${ENABLE_APP_STORE:-true}"
+      ENABLE_TIKTOK_CREATIVE_CENTER: "${ENABLE_TIKTOK_CREATIVE_CENTER:-true}"
+      ENABLE_SOCIAL_HANDLE_CHECK: "${ENABLE_SOCIAL_HANDLE_CHECK:-false}"
+      GOOGLE_TRENDS_GEO: "${GOOGLE_TRENDS_GEO:-US}"
+      APP_STORE_COUNTRY: "${APP_STORE_COUNTRY:-us}"
+      MAX_DOMAINS_PER_NARRATIVE: "${MAX_DOMAINS_PER_NARRATIVE:-25}"
+      MIN_BUY_SCORE: "${MIN_BUY_SCORE:-80}"
+      MIN_WATCH_SCORE: "${MIN_WATCH_SCORE:-65}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: trend-domain-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: trend_domains
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trend_domains"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: trend-domain-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
