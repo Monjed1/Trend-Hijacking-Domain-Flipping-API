@@ -219,7 +219,7 @@ export class NarrativeService {
     return uniqueBy(narratives, (narrative) => narrative.title.toLowerCase()).slice(0, maxNarratives);
   }
 
-  private scoreDeterministic(narrative: Narrative): AiNarrativeScoreResponse {
+  private scoreDeterministic(narrative: Narrative): { scores: NarrativeScores; overallScore: number; reasoning: string } {
     const terms = toArray(narrative.terms);
     const buyers = toArray(narrative.buyerTypes);
     const signals = toArray(narrative.sourceSignals);
